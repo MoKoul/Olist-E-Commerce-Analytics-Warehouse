@@ -1,3 +1,41 @@
+name: Deploy dbt Docs to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core dbt-bigquery
+
+      - name: Install dependencies
+        run: dbt deps
+
       - name: Generate static dbt docs
         env:
           KEYFILE_CONTENTS: ${{ secrets.DBT_GOOGLE_KEYFILE_CONTENTS }}
@@ -20,9 +58,30 @@
                 threads: 4
                 keyfile: /home/runner/.dbt/google_keyfile.json
                 location: US
-                priority: interactive
             target: dev
           EOF
 
           # 4. Run the command
           dbt docs generate --static
+
+      - name: Prepare deployment
+        run: |
+          mkdir -p public
+          # Use static_index.html produced by the --static flag
+          if [ -f target/static_index.html ]; then
+            cp target/static_index.html public/index.html
+          else
+            cp target/index.html public/index.html
+          fi
+          # Also copy other assets if any exist
+          cp -r target/* public/ 2>/dev/null || true
+          touch public/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
