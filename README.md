@@ -6,7 +6,7 @@
 [![BigQuery](https://img.shields.io/badge/BigQuery-blue)](https://cloud.google.com/bigquery)
 [![Looker Ready](https://img.shields.io/badge/Looker-Ready-green)]()
 
-**Live Documentation** (once hosted): [https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse)  
+**Live Documentation**: [https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse)  
 **Local Docs**: Run `dbt docs generate` → open `target/index.html`  
 **Data Source**: [Olist Brazilian E-Commerce Public Dataset (Kaggle)](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
 
