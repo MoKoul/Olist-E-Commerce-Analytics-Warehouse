@@ -1,0 +1,132 @@
+# models/marts/sales/fct_orders.yml
+
+version: 2
+
+models:
+  - name: fct_orders
+    description: |
+      Order-grain fact table. One row per unique order.
+
+      Aggregates item-level details from fct_order_items and enriches with customer geography.
+
+      Key features:
+      - Handles duplicated freight_value using MAX()
+      - Includes delivery performance flags (is_delivered, is_late, days_to_deliver)
+      - Provides clean order-level measures: subtotal, shipping, gross value, payment details, review score
+      - Business flags for sales attribution (excludes canceled orders)
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "gross_order_value >= 0"
+      - dbt_utils.expression_is_true:
+          expression: "order_item_count >= 1"
+
+    columns:
+      - name: order_sk
+        description: "Surrogate key for the order"
+        tests: [unique, not_null]
+
+      - name: customer_sk
+        description: "Foreign key to dim_customer"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_sk
+
+      - name: date_key
+        description: "Purchase date key (YYYYMMDD) linking to dim_date"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+
+      - name: order_status
+        description: "Current status of the order"
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - created
+                - approved
+                - invoiced
+                - processing
+                - shipped
+                - delivered
+                - unavailable
+                - canceled
+
+      - name: customer_city
+        description: "Customer city name"
+
+      - name: customer_state
+        description: "2-letter Brazilian state code"
+
+      - name: order_purchase_timestamp
+        description: "Timestamp when order was placed"
+        tests: [not_null]
+
+      - name: order_approved_timestamp
+        description: "Timestamp when the order was approved"
+
+      - name: order_delivered_carrier_timestamp
+        description: "Timestamp when handed over to carrier"
+
+      - name: order_delivered_customer_timestamp
+        description: "Timestamp when delivered to customer"
+
+      - name: order_estimated_delivery_timestamp
+        description: "Original estimated delivery timestamp"
+
+      - name: is_delivered
+        description: "True if order was delivered to customer"
+        tests:
+          - accepted_values:
+              values: [true, false]
+              quote: false   # Fixes BOOL vs STRING error
+
+      - name: is_late
+        description: "True if delivered after estimated date"
+        tests:
+          - accepted_values:
+              values: [true, false]
+              quote: false   
+
+      - name: order_item_count
+        description: "Number of items (line items) in the order"
+        tests: [not_null]
+
+      - name: days_to_deliver
+        description: "Number of days from order purchase to customer delivery (NULL if not delivered)"
+
+      - name: order_subtotal_amount
+        description: "Sum of items prices (excluding shipping)"
+
+      - name: order_shipping_cost_amount
+        description: "Total shipping cost for the order (de-duplicated via MAX)"
+
+      - name: gross_order_value
+        description: "Subtotal + shipping = gross order value"
+        tests: [not_null]
+
+      - name: customer_paid_amount
+        description: "Total amount paid by customer"
+        tests: [not_null]
+
+      - name: payment_installments_count
+        description: "Highest number of installments used across payments"
+
+      - name: order_review_score_avg
+        description: "Average review score (1-5)"
+
+      - name: was_canceled
+        description: "True if order was canceled"
+
+      - name: counts_as_sale
+        description: "True if order status is delivered, shipped, or invoiced (used for sales metrics)"
+        tests:
+          - accepted_values:
+              values: [true, false]
+              quote: false   
+
+      

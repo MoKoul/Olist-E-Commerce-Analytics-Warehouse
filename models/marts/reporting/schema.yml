@@ -1,0 +1,95 @@
+
+version: 2
+
+models:
+  - name: rpt_daily_sales
+    description: |
+      Daily sales performance report.
+      Aggregates order-level metrics from fct_orders to provide key daily KPIs for business monitoring and dashboards.
+
+      Ideal for time-series analysis of sales trends, delivery performance, and customer satisfaction.
+
+    columns:
+      - name: order_date
+        description: "Calendar date of order purchase (date part of order_purchase_timestamp)."
+
+      - name: total_orders
+        description: "Count of distinct orders placed on that day."
+
+      - name: total_items_sold
+        description: "Total number of items (units) sold across all orders that day."
+
+      - name: total_sales
+        description: "Total revenue from item prices (subtotal, excludes shipping). Rounded to 2 decimals."
+
+      - name: aov
+        description: "Average Order Value = total_sales / total_orders. Rounded to 2 decimals."
+
+      - name: delivered_orders_count
+        description: "Number of orders that were successfully delivered."
+
+      - name: late_orders_count
+        description: "Number of delivered orders that arrived after the estimated delivery date."
+
+      - name: late_delivery_pct
+        description: "Percentage of delivered orders that were late (= late_orders_count / delivered_orders_count × 100). Rounded to 2 decimals."
+
+      - name: daily_review_score_avg
+        description: "Average customer review score (1-5 stars) for orders placed on that day. Rounded to 2 decimals."
+
+  - name: rpt_geography_insights
+    description: |
+      Geographic sales insights by customer state and city.
+      Shows customer base size, order volume, items sold, revenue, and AOV at state-city level.
+
+      Perfect for map-based visualizations and regional performance analysis.
+
+    columns:
+      - name: customer_state
+        description: "Brazilian state abbreviation of the customer."
+
+      - name: customer_city
+        description: "Customer city name."
+
+      - name: total_customers
+        description: "Count of distinct customers who have placed at least one order from this city/state."
+
+      - name: total_items_sold
+        description: "Total number of items (units) sold to customers in this city/state."
+
+      - name: total_orders
+        description: "Total number of orders placed by customers in this city/state."
+
+      - name: total_sales
+        description: "Total revenue from item prices (subtotal, excludes shipping) for this city/state. Rounded to 2 decimals."
+
+      - name: aov
+        description: "Average Order Value for this city/state (= total_sales / total_orders). Rounded to 2 decimals."
+
+  - name: rpt_monthly_sales_by_category
+    description: |
+      Monthly sales performance broken down by product category (English names).
+      Grain: one row per month per product category.
+
+      Provides trends in category popularity, units sold, revenue, and category-specific AOV.
+
+      Handles missing/unknown categories with 'Unknown'.
+
+    columns:
+      - name: year_month
+        description: "Year and month of order purchase in YYYY-MM format."
+
+      - name: category_english
+        description: "Product category name translated to English. 'Unknown' if no translation available."
+
+      - name: total_orders
+        description: "Number of distinct orders containing at least one item from this category in the month."
+
+      - name: total_items
+        description: "Total units sold (quantity) for this category in the month."
+
+      - name: total_sales
+        description: "Total revenue from items in this category (item_price only, excludes shipping). Rounded to 2 decimals."
+
+      - name: aov
+        description: "Average Order Value for orders containing this category (= total_sales / total_orders). Rounded to 2 decimals."

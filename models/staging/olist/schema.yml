@@ -1,0 +1,103 @@
+version: 2
+
+models:
+  - name: stg_olist__customers
+    description: |
+      Staging layer table containing unique customer identifiers 
+                  and their associated unique ID used in the rest of the DWH.
+
+  - name: stg_olist__orders
+    description: "Staging layer table. One row represents a single order placed on the Olist platform."
+    columns:
+      - name: order_id
+        description: "The unique identifier for each order."
+      - name: customer_id
+        description: "Key to the customers table (internal Olist customer ID)."
+      - name: customer_unique_id
+        description: "An identifier representing a unique customer across different orders."
+      - name: order_status
+        description: "Current status of the order (e.g., delivered, shipped, canceled, etc)."
+      - name: order_purchase_timestamp
+        description: "Timestamp when the order was purchased."
+      - name: order_approved_timestamp
+        description: "Timestamp when the payment was approved by Olist (renamed from order_approved_at)."
+      - name: order_delivered_carrier_timestamp
+        description: "Timestamp when the order was handed over to the carrier (renamed from order_delivered_carrier_date)."
+      - name: order_delivered_customer_timestamp
+        description: "Timestamp when the order was delivered to the customer (renamed from order_delivered_customer_date)."
+      - name: order_estimated_delivery_timestamp
+        description: "The estimated delivery date provided at the time of purchase (renamed from order_estimated_delivery_date)."
+
+  - name: stg_olist__order_items
+    description: |
+      Staging layer table detailing the line items for each order. 
+                  It links specific orders (order_id) to the products (product_id) and sellers (seller_id) 
+                  involved in the transaction.  
+    columns:
+      - name: order_id
+        description: "The unique identifier for each order."
+      - name: order_item_id
+        description: "A sequence number for items within a single order."
+      - name: product_id
+        description: "Foreign key to the products table."
+      - name: seller_id
+        description: "Foreign key to the sellers table."
+      - name: shipping_limit_timestamp
+        description: "The deadline for the seller to ship this specific order (renamed from shipping_limit_date for consistency)."
+      - name: price
+        description: "The price of the product item."
+      - name: freight_value
+        description: "The freight value (shipping cost) charged for the order."
+
+      
+  - name: stg_olist__order_payments
+    description: |
+      Staging layer table containing payment transaction details associated with each order. 
+                  Note: A single order may span multiple rows if split across different payment types or installments.
+          
+  - name: stg_olist__order_reviews
+    description: |
+      Staging layer table holding customer feedback, ratings (1-5 stars), 
+                  and review comments provided after order delivery.
+    columns:
+      - name: review_id
+        description: "Unique identifier for the review itself."
+      - name: order_id
+        description: "Foreign key linking the review back to a specific order."
+      - name: review_score
+        description: "The rating given by the customer (1 to 5 stars)."
+      - name: review_creation_timestamp
+        description: "The date the review was created (renamed from review_creation_date)."
+    
+      
+  - name: stg_olist__products
+    description: |
+      Staging layer table acting as the product catalog. 
+                  Contains product attributes, physical dimensions (weight, length, etc.), 
+                  and the original Portuguese category name.
+    columns: 
+      - name: product_name_length
+        description: "Length of the product name text (corrected typo)."
+      - name: product_description_length
+        description: "Length of the product description text (corrected typo)."  
+      
+  - name: stg_olist__sellers
+    description: |
+      Staging layer table providing core details for each unique seller 
+                  operating on the Olist platform, including their unique identifier and location information.
+      
+  - name: stg_olist__geolocation
+    description: |
+      Reference table mapping Brazilian 5-digit zip codes (geolocation_zip_code_prefix) 
+                  to approximate latitude and longitude coordinates.
+      
+  - name: stg_olist__category_translation
+    description: |
+      Mapping table used to translate product category names from the original Portuguese 
+                  to English for improved reporting clarity.
+    columns:
+      - name: product_category_name
+        description: "The original product category name in Portuguese (renamed from source's 'string_field_0')."
+      - name: product_category_name_english
+        description: "The translated product category name in English (renamed from source's 'string_field_1')."
+

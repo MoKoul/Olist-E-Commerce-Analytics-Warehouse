@@ -1,0 +1,145 @@
+# models/marts/core/schema.yml
+
+version: 2
+
+models:
+  - name: dim_customer
+    description: |
+      Customer dimension. One row per unique customer (based on customer_unique_id).
+
+      Resolves source data issues by using customer_unique_id as the natural key and enriching geography
+      from the geolocation table using zip code prefix (including approximate lat/lng).
+    columns:
+      - name: customer_sk
+        description: "Primary surrogate key"
+        tests: [unique, not_null]
+
+      - name: customer_unique_id
+        description: "Natural business key from source (anonymized customer identifier)"
+        tests: [unique, not_null]
+
+      - name: customer_zip_code_prefix
+        description: "5-digit Brazilian zip code prefix used for geography enrichment"
+        tests: [not_null]
+
+      - name: customer_city
+        description: "Customer city name, enriched by geolocation_city"
+        tests: [not_null]
+
+      - name: customer_state
+        description: "2-letter Brazilian state code, enriched from geolocation table"
+        tests: [not_null]
+
+      - name: geolocation_lat
+        description: "Approximate latitude of customer location (from geolocation table)"
+
+      - name: geolocation_lng
+        description: "Approximate longitude of customer location (from geolocation table)"
+
+  - name: dim_product
+    description: |
+      Product dimension. One row per unique product.
+
+      Enriched with English category name via the product category translation table.
+    columns:
+      - name: product_sk
+        description: "Surrogate primary key"
+        tests: [unique, not_null]
+
+      - name: product_id
+        description: "Natural key from source"
+        tests: [unique, not_null]
+
+      - name: product_category_name_english
+        description: "Product category translated to English"
+        tests: [not_null]
+
+      - name: product_category_name_portuguese
+        description: "Original product category name in Portuguese"
+        tests: [not_null]
+
+      - name: product_photos_qty
+        description: "Number of product photos available in the listing"
+
+      - name: product_weight_g
+        description: "Product weight in grams"
+
+      - name: product_length_cm
+        description: "Product length in centimeters"
+
+      - name: product_height_cm
+        description: "Product height in centimeters"
+
+      - name: product_width_cm
+        description: "Product width in centimeters"
+
+  - name: dim_seller
+    description: |
+      Seller dimension. One row per unique seller.
+
+      Enriched with city, state, and approximate latitude/longitude from geolocation table.
+    columns:
+      - name: seller_sk
+        description: "Surrogate primary key"
+        tests: [unique, not_null]
+
+      - name: seller_id
+        description: "Natural key from source"
+        tests: [unique, not_null]
+
+      - name: seller_zip_code_prefix
+        description: "5-digit zip code prefix for geography enrichment"
+        tests: [not_null]
+
+      - name: seller_city
+        description: "Seller city name, enriched from geolocation table"
+        tests: [not_null]
+        
+      - name: seller_state
+        description: "Seller state code, enriched from geolocation table"
+        tests: [not_null]
+
+      - name: geolocation_lat
+        description: "Approximate latitude of seller location (from geolocation table)"
+
+      - name: geolocation_lng
+        description: "Approximate longitude of seller location (from geolocation table)"
+
+  - name: dim_date
+    description: |
+      Date dimension covering Olist data range (2016-2018).
+      Includes descriptive fields for easy analysis: month_name, day_name, is_weekend, etc. 
+      Grain: one row per day.
+    columns:
+      - name: date_key
+        description: "Primary key in YYYYMMDD integer format (e.g., 20180904)"
+        tests: [unique, not_null]
+
+      - name: full_date
+        description: "Full calendar date (DATE type, e.g., 2018-09-04)"
+
+      - name: year
+        description: "Calendar year (e.g., 2018)"
+
+      - name: quarter
+        description: "Quarter number (1-4)"
+
+      - name: month_number
+        description: "Month number (1-12)"
+
+      - name: month_name
+        description: "Full month name (e.g., September)"
+
+      - name: day_name
+        description: "Full day of week name (e.g., Tuesday)"
+
+      - name: day_of_week
+        description: "Day of week number (1=Sunday, 7=Saturday)"
+
+      - name: day_of_month
+        description: "Day number within the month (1-31)"
+
+      - name: is_weekend
+        description: "True if the day is Saturday or Sunday"
+  
+  

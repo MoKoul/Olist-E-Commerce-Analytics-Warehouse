@@ -1,0 +1,41 @@
+version: 2
+
+sources:
+  - name: olist
+    description: "Raw data from the Olist Brazilian ecommerce public dataset. Loaded into the raw_olist_data schema."
+    database: olist-warehouse
+    schema: raw_olist_data
+    tables:
+      - name: orders
+        description: "One row per order. Contains order status, timestamps, and customer_id."
+      
+      - name: customers
+        description: "Customer information. customer_id links to orders, customer_unique_id is the anonymized customer identifier."
+      
+      - name: order_items
+        description: "Line items for each order. Links orders to products and sellers."
+      
+      - name: order_payments
+        description: "Payment details for each order (can have multiple payments per order)."
+      
+      - name: order_reviews
+        description: "Customer reviews and ratings for orders."
+      
+      - name: products
+        description: "Product catalog with dimensions, weight, and category."
+      
+      - name: sellers
+        description: "Seller information."
+      
+      - name: geolocation
+        description: "Brazilian zip code to latitude/longitude mapping."
+      
+      - name: product_category_translation
+        description: "Translation table from Portuguese product category names to English."
+    
+    freshness:
+      warn_after: {count: 50, period: day}
+      error_after: {count: 100, period: day}
+
+      # Monitors raw table load recency via BigQuery metadata.
+      # In production, this catches failed ingestions early.
