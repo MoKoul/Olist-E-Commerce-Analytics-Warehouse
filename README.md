@@ -57,7 +57,7 @@ BigQuery Project: olist-warehouse
 
 - **Staging**: Light cleaning, consistent naming, source freshness monitoring
 - **Surrogate keys**: Deterministic hashes via `dbt_utils.generate_surrogate_key`
-- **Freight handling**: Correctly uses `MAX()` to de-duplicate total order shipping cost
+- **Freight handling**: Correctly uses `MAX()` to de-duplicate order shipping cost
 - **Customer deduplication**: Uses `customer_unique_id` as natural key
 - **Geography enrichment**: Joins geolocation table for city/state/lat/lng
 - **Comprehensive testing** (50+ tests, all passing):
