@@ -2,9 +2,9 @@
 
 **A dbt project transforming the public Olist Brazilian E-Commerce dataset into a clean, tested, Kimball-style star schema on Google BigQuery.**
 
-[![dbt](https://img.shields.io/badge/dbt-1.10-orange)](https://docs.getdbt.com/)
+[![dbt](https://img.shields.io/badge/dbt-1.10.15-orange)](https://docs.getdbt.com/)
 [![BigQuery](https://img.shields.io/badge/BigQuery-blue)](https://cloud.google.com/bigquery)
-[![Looker Ready](https://img.shields.io/badge/Looker-Ready-green)]()
+[![Looker Ready](https://img.shields.io/badge/Looker-Ready-green)](https://cloud.google.com/looker)
 
 **Live Documentation**: Full interactive docs (lineage graph, models, tests):  
 [https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/](https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/)    
@@ -20,7 +20,7 @@ It transforms raw CSV tables into a fully documented, tested, and BI-ready data 
 - Core dimensions and facts (marts)
 - Dedicated reporting views
 
-The model handles real-world data challenges such as duplicated freight values, multiple `customer_id`s per person, and inconsistent geolocation data.
+The model handles data challenges such as cleaning and uploading data to BigQuery, duplicated freight values,  and inconsistent geolocation data.
 
 
 ## Architecture
@@ -28,7 +28,7 @@ The model handles real-world data challenges such as duplicated freight values, 
 
 ```text
 BigQuery Project: olist-warehouse
-├── raw_olist_data/                ← Raw untouched tables (CSV loads)
+├── raw_olist_data/                ← Raw tables (CSV loads)
 └── dwh_olist/                     ← All dbt-built models
 │    ├── stg_olist__customers
 │    ├── stg_olist__products
@@ -51,6 +51,11 @@ BigQuery Project: olist-warehouse
      └── rpt_monthly_sales_by_category 
 ```  
 
+## Data Preparation
+
+Raw data often requires preprocessing for warehouse compatibility. This project includes:
+
+- `notebooks/clean_order_reviews.ipynb`: A Jupyter notebook using Pandas to clean the `olist_order_reviews_dataset.csv`. It removes all special characters except for alphanumeric text, commas, and periods from comment fields (e.g., titles and messages) to prevent BigQuery import errors, converts timestamps to datetime, and exports a revised CSV.(`revised_olist_order_reviews_dataset.csv`) ready for  uploading in BigQuery.
 
 
 ## Key Features & Best Practices
@@ -58,20 +63,32 @@ BigQuery Project: olist-warehouse
 - **Staging**: Light cleaning, consistent naming, source freshness monitoring
 - **Surrogate keys**: Deterministic hashes via `dbt_utils.generate_surrogate_key`
 - **Freight handling**: Correctly uses `MAX()` to de-duplicate order shipping cost
-- **Customer deduplication**: Uses `customer_unique_id` as natural key
+
 - **Geography enrichment**: Joins geolocation table for city/state/lat/lng
 - **Comprehensive testing** (50+ tests, all passing):
-  - PK uniqueness & not_null
+  - Primary Key uniqueness & not_null
   - Foreign key relationships
   - Accepted values (status, flags)
   - Business logic (gross value ≥ 0, item count ≥ 1)
 - **Full documentation**: Model and column descriptions, interactive lineage graph
 - **Layer separation**: Core marts as tables, reporting as views in dedicated schema
 
+![Lineage DAG](visualizations/Lineage_DAG.png)
+
 ## Reporting Views (BI-Ready)
 
 | View                          | Description |
 |-------------------------------|-----------|
-| `rpt_daily_sales`             | Daily orders, revenue, AOV, late delivery %, average review score |
+| `rpt_daily_sales`             | Daily orders, revenue, Average Order Value (AOV), late delivery %, average review score |
 | `rpt_geography_insights`      | Sales, orders, customers by state and city — ideal for maps |
 | `rpt_monthly_sales_by_category` | Monthly revenue and units sold by product category (English names) |
+
+
+## Looker Dashboard (Powered by this dbt project)
+
+A sample executive sales dashboard built in Looker Studio, leveraging the reporting views (`rpt_*`) for insights like total sales, sales trends, category breakdowns, and geography.
+
+![Olist Sales Dashboard 2016-2018](visualizations/dashboard_screenshot.png)
+
+## License
+This project is licensed under the MIT License.

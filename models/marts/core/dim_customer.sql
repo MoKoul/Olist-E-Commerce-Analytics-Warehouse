@@ -4,7 +4,6 @@
 -- Dimension table: one row per unique customer (customer_unique_id)
 -- 
 -- Handles:
---   Multiple customer_unique_id per customer → deduplicated
 --   Messy geolocation data → one representative lat/lng per zip code prefix
 --   Missing/inconsistent city/state in customers → enriched from geolocation
 
