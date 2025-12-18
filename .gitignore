@@ -5,3 +5,5 @@ logs/
 .DS_Store
 *.pyc
 --_pycache__
+.ipynb_checkpoints/
+
