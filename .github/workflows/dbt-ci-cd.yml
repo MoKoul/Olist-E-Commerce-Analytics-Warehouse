@@ -1,0 +1,46 @@
+name: dbt CI (Pull Request Check)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dbt-ci:
+    runs-on: ubuntu-latest
+    env:
+      KEYFILE_CONTENTS: ${{ secrets.DBT_GOOGLE_KEYFILE_CONTENTS }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: |
+          pip install dbt-core dbt-bigquery
+
+      - name: Install dependencies
+        run: dbt deps
+
+      - name: Authenticate and Run CI
+        run: |
+          mkdir -p ~/.dbt
+          echo "$KEYFILE_CONTENTS" > ~/.dbt/google_keyfile.json
+          cat <<EOF > ~/.dbt/profiles.yml
+          olist_warehouse_project:
+            outputs:
+              ci:
+                type: bigquery
+                method: service-account
+                project: olist-warehouse
+                dataset: olist_ci  # Temporary dataset for testing
+                threads: 4
+                keyfile: /home/runner/.dbt/google_keyfile.json
+                location: US
+            target: ci
+          EOF
+          dbt build --select state:modified+ --defer --state ./  # Slim CI: only test changes

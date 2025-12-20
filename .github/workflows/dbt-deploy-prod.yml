@@ -1,0 +1,46 @@
+name: dbt Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    env:
+      PROD_KEYFILE: ${{ secrets.DBT_PROD_GOOGLE_KEYFILE_CONTENTS }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: |
+          pip install dbt-core dbt-bigquery
+
+      - name: Install dependencies
+        run: dbt deps
+
+      - name: Deploy to olist_prod
+        run: |
+          mkdir -p ~/.dbt
+          echo "$PROD_KEYFILE" > ~/.dbt/google_keyfile.json
+          cat <<EOF > ~/.dbt/profiles.yml
+          olist_warehouse_project:
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: olist-warehouse
+                dataset: olist_prod  # Your new production dataset
+                threads: 4
+                keyfile: /home/runner/.dbt/google_keyfile.json
+                location: US
+            target: prod
+          EOF
+          dbt build  # Build the entire project in production
