@@ -37,10 +37,18 @@ jobs:
                 type: bigquery
                 method: service-account
                 project: olist-warehouse
-                dataset: olist_ci  # Temporary dataset for testing
+                dataset: olist_ci
                 threads: 4
                 keyfile: /home/runner/.dbt/google_keyfile.json
                 location: US
             target: ci
           EOF
-          dbt build --select state:modified+ --defer --state ./  # Slim CI: only test changes
+          if [ -f "./manifest.json" ]; then
+            echo "Manifest found! Running Slim CI..."
+            dbt build --select state:modified+ --defer --state ./
+          else
+            echo "No manifest found. Running full build to establish state..."
+            dbt build
+            # This saves the manifest so it exists for future steps in THIS run
+            cp target/manifest.json ./manifest.json
+          fi
