@@ -2,14 +2,18 @@
 
 **A dbt project transforming the public Olist Brazilian E-Commerce dataset into a clean, tested, Kimball-style star schema on Google BigQuery.**
 
+
 [![dbt](https://img.shields.io/badge/dbt-1.10.15-orange)](https://docs.getdbt.com/)
 [![BigQuery](https://img.shields.io/badge/BigQuery-blue)](https://cloud.google.com/bigquery)
-[![Looker Ready](https://img.shields.io/badge/Looker-Ready-green)](https://cloud.google.com/looker)
+[![Looker Ready](https://img.shields.io/badge/Looker-Ready-green)](https://cloud.google.com/looker)  
+[![CI/CD](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse/actions/workflows/dbt-ci-cd.yml/badge.svg)](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse/actions/workflows/dbt-ci-cd.yml)  
+[![Prod Deploy](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse/actions/workflows/dbt-deploy-prod.yml/badge.svg)](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse/actions/workflows/dbt-deploy-prod.yml)  
+[![Docs](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/MoKoul/Olist-E-Commerce-Analytics-Warehouse/actions/workflows/deploy-docs.yml)
 
-**Live Documentation**: Full interactive docs (lineage graph, models, tests):  
-[https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/](https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/)    
+**Live Documentation** (automatically deployed on every merge):  
+[https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/](https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/)   
 **Local Docs**: Run `dbt docs generate` → open `target/index.html`  
-**Data Source**: [Olist Brazilian E-Commerce Public Dataset (Kaggle)](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+**Data Source**: [Olist Brazilian E-Commerce Public Dataset (Kaggle)](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)  
 
 ## Project Overview
 
@@ -55,7 +59,7 @@ BigQuery Project: olist-warehouse
 
 Raw data often requires preprocessing for warehouse compatibility. This project includes:
 
-- `notebooks/clean_order_reviews.ipynb`: A Jupyter notebook using Pandas to clean the `olist_order_reviews_dataset.csv`. It removes all special characters except for alphanumeric text, commas, and periods from comment fields (e.g., titles and messages) to prevent BigQuery import errors, converts timestamps to datetime, and exports a revised CSV.(`revised_olist_order_reviews_dataset.csv`) ready for  uploading in BigQuery.
+- `notebooks/clean_order_reviews.ipynb`: A Jupyter notebook using Pandas to clean the `olist_order_reviews_dataset.csv`. It removes all special characters except for alphanumeric text, commas, and periods from comment fields (e.g., titles and messages) to prevent BigQuery import errors, converts timestamps to datetime, and exports a revised CSV  (`revised_olist_order_reviews_dataset.csv`) ready for  uploading in BigQuery.
 
 
 ## Key Features & Best Practices
@@ -74,6 +78,34 @@ Raw data often requires preprocessing for warehouse compatibility. This project 
 - **Layer separation**: Core marts as tables, reporting as views in dedicated schema
 
 ![Lineage DAG](visualizations/Lineage_DAG.png)
+
+
+
+
+
+## Automation & CI/CD Pipeline
+
+This project uses **GitHub Actions** for a fully automated analytics pipeline:
+
+### Workflow Overview
+
+| Workflow              | Trigger                          | Purpose                                                                 | Environment     |
+|-----------------------|----------------------------------|-------------------------------------------------------------------------|-----------------|
+| **CI/CD Tests**       | Pull Requests & pushes to branches | Runs `dbt compile`, selective models, and all tests in a dev schema    | BigQuery (dev)  |
+| **Documentation**     | Push to `main`                   | Automatically generates and deploys latest dbt docs to GitHub Pages     | Public URL      |
+| **Production Deploy** | Git tag creation (e.g., `v1.x.x`) or manual trigger | Runs full `dbt run` + tests against production schema                  | BigQuery (prod) |
+
+### Benefits
+- **Zero manual deployment**: Changes are tested automatically on every PR
+- **Safe production releases**: Only tagged versions deploy to production
+- **Always up-to-date documentation**: Reflects the current state of `main`
+- **Reproducible & auditable**: Every run is logged in GitHub Actions
+
+**Live Documentation** (auto-deployed on every merge to main):  
+[https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/](https://mokoul.github.io/Olist-E-Commerce-Analytics-Warehouse/)
+
+
+  
 
 ## Reporting Views (BI-Ready)
 
