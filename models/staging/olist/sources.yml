@@ -33,9 +33,10 @@ sources:
       - name: product_category_translation
         description: "Translation table from Portuguese product category names to English."
     
-    freshness:
-      warn_after: {count: 50, period: day}
-      error_after: {count: 100, period: day}
+    config:
+      freshness:
+        warn_after: {count: 50, period: day}
+        error_after: {count: 100, period: day}
 
-      # Monitors raw table load recency via BigQuery metadata.
-      # In production, this catches failed ingestions early.
+        # Monitors raw table load recency via BigQuery metadata.
+        # In production, this catches failed ingestions early.

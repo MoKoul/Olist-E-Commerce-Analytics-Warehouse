@@ -16,9 +16,11 @@ models:
       - Business flags for sales attribution (excludes canceled orders)
     tests:
       - dbt_utils.expression_is_true:
-          expression: "gross_order_value >= 0"
+          arguments:
+            expression: "gross_order_value >= 0"
       - dbt_utils.expression_is_true:
-          expression: "order_item_count >= 1"
+          arguments:
+            expression: "order_item_count >= 1"
 
     columns:
       - name: order_sk
@@ -30,31 +32,34 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_customer')
-              field: customer_sk
+              arguments:
+                 to: ref('dim_customer')
+                 field: customer_sk
 
       - name: date_key
         description: "Purchase date key (YYYYMMDD) linking to dim_date"
         tests:
           - not_null
           - relationships:
-              to: ref('dim_date')
-              field: date_key
+              arguments:
+                 to: ref('dim_date')
+                 field: date_key
 
       - name: order_status
         description: "Current status of the order"
         tests:
           - not_null
           - accepted_values:
-              values:
-                - created
-                - approved
-                - invoiced
-                - processing
-                - shipped
-                - delivered
-                - unavailable
-                - canceled
+              arguments:
+                values:
+                  - created
+                  - approved
+                  - invoiced
+                  - processing
+                  - shipped
+                  - delivered
+                  - unavailable
+                  - canceled
 
       - name: customer_city
         description: "Customer city name"
@@ -82,15 +87,17 @@ models:
         description: "True if order was delivered to customer"
         tests:
           - accepted_values:
-              values: [true, false]
-              quote: false   # Fixes BOOL vs STRING error
+              arguments:
+                values: [true, false]
+                quote: false   # Fixes BOOL vs STRING error
 
       - name: is_late
         description: "True if delivered after estimated date"
         tests:
           - accepted_values:
-              values: [true, false]
-              quote: false   
+              arguments:
+                values: [true, false]
+                quote: false   
 
       - name: order_item_count
         description: "Number of items (line items) in the order"
@@ -126,7 +133,8 @@ models:
         description: "True if order status is delivered, shipped, or invoiced (used for sales metrics)"
         tests:
           - accepted_values:
-              values: [true, false]
-              quote: false   
+              arguments:
+                values: [true, false]
+                quote: false   
 
       
