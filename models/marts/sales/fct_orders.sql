@@ -14,8 +14,23 @@
 -- • Gross order value: item subtotal + shipping
 -- • Sales attribution: counts_as_sale flag excludes canceled/incomplete orders
 
+{{
+    config(
+        materialized = 'table',
+        partition_by = {
+            "field": "order_purchase_ym",
+            "data_type": "int64",
+            "range": {"start": 201601, "end": 201901, "interval": 1}
+    },
+        cluster_by = ["customer_sk", "order_status", "customer_state"],
+        require_partition_filter = false 
+    )
+}}
+
 
 select
+   
+    
     -- Keys (from item fact)
     oi.order_sk,               -- This is order level not order-item level
     oi.customer_sk,
@@ -24,6 +39,12 @@ select
     -- Customer geography (enriched)
     c.customer_state,
     c.customer_city,
+    
+    -- Order Date for partitioning
+    oi.order_purchase_date,
+
+     -- Add new integer column for Date as YearMonth to be used instead of date in partitioning
+    oi.order_purchase_ym,
 
     -- Order timestamps and status
     oi.order_status,

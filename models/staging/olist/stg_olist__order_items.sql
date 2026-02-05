@@ -1,6 +1,7 @@
 
 -- models/staging/olist/stg_olist__order_items.sql
 
+
 select
     order_id,
     order_item_id,

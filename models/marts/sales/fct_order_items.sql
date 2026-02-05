@@ -13,6 +13,19 @@
 -- Grain: order_id + order_item_id
 -- Primary key: order_item_sk
 
+{{
+    config(
+        materialized = 'table',
+        partition_by = {
+            "field": "order_purchase_ym",
+            "data_type": "int64",
+            "range": {"start": 201601, "end": 201901, "interval": 1}
+        },
+        cluster_by = ["order_status", "product_category_name_english"],
+        require_partition_filter = false 
+    )
+}}
+
 
 with payments as (
     select
@@ -29,6 +42,20 @@ reviews as (
         avg(review_score) as avg_review_score          
     from {{ ref('stg_olist__order_reviews') }}
     group by 1
+),
+
+products as(
+    select
+        product_id,
+        product_category_name
+    from {{ ref('stg_olist__products')}}
+),
+
+translation as (
+    select
+        product_category_name,
+        product_category_name_english
+    from {{ ref('stg_olist__category_translation')}}
 )
 
 select
@@ -49,6 +76,15 @@ select
     coalesce(p.max_installments, 0)                              as payment_installments_count,
     coalesce(r.avg_review_score, 0)                              as order_review_score_avg,
 
+    -- Enrich product category
+    t.product_category_name_english                              as product_category_name_english,
+   
+    -- Order Date for partitioning
+    o.order_purchase_date,
+
+    -- Add new integer column for Date as YearMonth to be used instead of date in partitioning
+    extract(year from o.order_purchase_date)*100 + extract(month from o.order_purchase_date) as order_purchase_ym,
+    
     -- Order status and timestamps
     o.order_status,
     o.order_purchase_timestamp,
@@ -61,3 +97,5 @@ from {{ ref('stg_olist__order_items') }} as oi
 left join {{ ref('stg_olist__orders') }} as o          on oi.order_id = o.order_id
 left join payments p                                   on oi.order_id = p.order_id
 left join reviews r                                    on oi.order_id = r.order_id
+left join products pr                                  on oi.product_id = pr.product_id
+left join translation t                                on pr.product_category_name = t.product_category_name

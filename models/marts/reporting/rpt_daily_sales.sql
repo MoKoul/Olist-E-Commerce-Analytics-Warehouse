@@ -8,7 +8,7 @@
           )}}
 
 select
-    date(order_purchase_timestamp)                            as order_date,
+    order_purchase_date                                       as order_date,
     count( order_sk)                                          as total_orders,
     sum(order_item_count)                                     as total_items_sold,
     round(sum(order_subtotal_amount), 2)                      as total_sales,

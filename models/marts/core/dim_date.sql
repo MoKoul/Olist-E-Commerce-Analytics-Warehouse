@@ -15,13 +15,17 @@ with date_spine as (
 select
     format_date('%Y%m%d', date_day)                   as date_key,          -- 20180904
     date_day                                          as full_date,         -- DATE type: 2018-09-04 
-    extract(YEAR from date_day)                       as year,
-    extract(QUARTER from date_day)                    as quarter,
-    extract(MONTH from date_day)                      as month_number,
+
+    -- Add new integer column for Date as YearMonth to be used instead of date in partitioning
+    extract(year from date_day)*100 + extract(month from date_day) as order_purchase_ym,
+
+    extract(year from date_day)                       as year,
+    extract(quarter from date_day)                    as quarter,
+    extract(month from date_day)                      as month_number,
     format_date('%B', date_day)                       as month_name,
     format_date('%A', date_day)                       as day_name,
     extract(DAYOFWEEK from date_day)                  as day_of_week,       -- 1=Sunday, 7=Saturday
-    extract(DAY from date_day)                        as day_of_month,
+    extract(day from date_day)                        as day_of_month,
     case when extract(DAYOFWEEK from date_day) in (1,7) then true else false end as is_weekend,
     --case when date_day = current_date() then true else false end               as is_today
 from date_spine

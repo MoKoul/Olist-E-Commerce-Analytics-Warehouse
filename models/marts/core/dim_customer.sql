@@ -7,6 +7,14 @@
 --   Messy geolocation data → one representative lat/lng per zip code prefix
 --   Missing/inconsistent city/state in customers → enriched from geolocation
 
+{{
+  config(
+    materialized = 'table',
+    cluster_by = ["customer_state"]
+  )
+
+}}
+
 
 with customers as (
     select
