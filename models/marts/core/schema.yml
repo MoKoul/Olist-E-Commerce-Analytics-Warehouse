@@ -118,6 +118,9 @@ models:
       - name: full_date
         description: "Full calendar date (DATE type, e.g., 2018-09-04)"
 
+      - name: order_purchase_ym
+        description: "Partition key Integer (YYYYMM). Filter on this for fastest queries (e.g., WHERE order_purchase_ym = 201710)."
+
       - name: year
         description: "Calendar year (e.g., 2018)"
 

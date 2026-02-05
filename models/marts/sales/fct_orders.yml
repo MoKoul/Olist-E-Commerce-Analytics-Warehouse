@@ -8,6 +8,7 @@ models:
       Order-grain fact table. One row per unique order.
 
       Aggregates item-level details from fct_order_items and enriches with customer geography.
+      Partitioned by integer year-month (order_purchase_ym = YYYYMM).
 
       Key features:
       - Handles duplicated freight_value using MAX()
@@ -67,6 +68,12 @@ models:
       - name: customer_state
         description: "2-letter Brazilian state code"
 
+      - name: order_purchase_date
+        description: "Date as YYYYMMDD for the time order was placed"
+
+      - name: order_purchase_ym
+        description: "Partition key Integer (YYYYMM). Filter on this for fastest queries (e.g., WHERE order_purchase_ym = 201710)."
+      
       - name: order_purchase_timestamp
         description: "Timestamp when order was placed"
         tests: [not_null]

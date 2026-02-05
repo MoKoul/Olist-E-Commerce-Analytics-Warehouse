@@ -8,7 +8,8 @@ models:
     description: |
       Fact table at order-item grain (one row per line item in an order).
       Core sales metrics including price, freight, total payment, review score.
-      Matches row count of stg_olist__order_items for data integrity.
+      Matches row count of stg_olist__order_items for data integrity. Partitioned by 
+      integer year-month (order_purchase_ym = YYYYMM).
     
     tests:
       - dbt_utils.equal_rowcount:
@@ -75,6 +76,12 @@ models:
 
       - name: order_status
         description: "Current order status (e.g., delivered, shipped, canceled)"
+
+      - name: order_purchase_date
+        description: "Date as YYYYMMDD for the time order was placed"
+
+      - name: order_purchase_ym
+        description: "Partition key Integer (YYYYMM). Filter on this for fastest queries (e.g., WHERE order_purchase_ym = 201710)."
 
       - name: order_purchase_timestamp
         description: "Timestamp when the order was placed"

@@ -1,10 +1,15 @@
 -- models/staging/olist/stg_olist__orders.sql
 
+
 select
     o.order_id,
     o.customer_id,
     c.customer_unique_id,
     o.order_status,
+
+    -- Order Date for partitioning
+    cast(o.order_purchase_timestamp as date)                    as order_purchase_date,
+
     o.order_purchase_timestamp           as order_purchase_timestamp,
     o.order_approved_at                  as order_approved_timestamp,
     o.order_delivered_carrier_date       as order_delivered_carrier_timestamp,
