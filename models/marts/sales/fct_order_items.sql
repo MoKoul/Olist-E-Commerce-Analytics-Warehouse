@@ -24,8 +24,7 @@
         },
         cluster_by = ["order_status", "product_category_name_english"],
         require_partition_filter = false,
-        incremental_strategy = 'merge',
-        full_refresh = true 
+        incremental_strategy = 'merge'
     )
 }}
 
