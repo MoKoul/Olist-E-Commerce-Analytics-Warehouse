@@ -8,7 +8,7 @@ models:
       Order-grain fact table. One row per unique order.
 
       Aggregates item-level details from fct_order_items and enriches with customer geography.
-      Partitioned by integer year-month (order_purchase_ym = YYYYMM).
+      Partitioned order_purchase_date (month).
 
       Key features:
       - Handles duplicated freight_value using MAX()

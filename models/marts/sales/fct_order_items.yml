@@ -9,7 +9,7 @@ models:
       Fact table at order-item grain (one row per line item in an order).
       Core sales metrics including price, freight, total payment, review score.
       Matches row count of stg_olist__order_items for data integrity. Partitioned by 
-      integer year-month (order_purchase_ym = YYYYMM).
+      order_purchase_date (month).
     
     tests:
       - dbt_utils.equal_rowcount:
