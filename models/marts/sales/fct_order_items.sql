@@ -15,36 +15,57 @@
 
 {{
     config(
-        materialized = 'table',
+        materialized = 'incremental',
+        unique_key = 'order_item_sk',
         partition_by = {
-            "field": "order_purchase_ym",
-            "data_type": "int64",
-            "range": {"start": 201601, "end": 201901, "interval": 1}
+            "field": "order_purchase_date",
+            "data_type": "date",
+            "granularity": "month"
         },
         cluster_by = ["order_status", "product_category_name_english"],
-        require_partition_filter = false 
+        require_partition_filter = false,
+        incremental_strategy = 'merge',
+        full_refresh = true 
     )
 }}
 
+with recent_orders as (
+    select *
+    from {{ ref('stg_olist__orders') }}
+    {% if is_incremental() %}
+    where order_purchase_timestamp >= (
+        select timestamp_sub(max(order_purchase_timestamp), interval 3 day)
+        from {{ this }}
+    )
+    {% endif %}
+),
 
-with payments as (
+order_items as (
+    select oi.*
+    from {{ ref('stg_olist__order_items') }} oi
+    inner join recent_orders ro on oi.order_id = ro.order_id
+),
+
+payments as (
     select
-        order_id,
-        sum(payment_value) as total_payment_value,      
+        ro.order_id,
+        sum(payment_value) as total_payment_value,
         max(payment_installments) as max_installments
-    from {{ ref('stg_olist__order_payments') }}
+    from {{ ref('stg_olist__order_payments') }} p
+    inner join recent_orders ro on p.order_id = ro.order_id
     group by 1
 ),
 
 reviews as (
     select
-        order_id,
-        avg(review_score) as avg_review_score          
-    from {{ ref('stg_olist__order_reviews') }}
+        ro.order_id,
+        avg(review_score) as avg_review_score
+    from {{ ref('stg_olist__order_reviews') }} r
+    inner join recent_orders ro on r.order_id = ro.order_id
     group by 1
 ),
 
-products as(
+products as (
     select
         product_id,
         product_category_name
@@ -59,10 +80,10 @@ translation as (
 )
 
 select
-    -- Primary key - grain of the fact-item table
+    -- Primary key
     {{ dbt_utils.generate_surrogate_key(['oi.order_id', 'oi.order_item_id']) }} as order_item_sk,
 
-    -- Foreign keys (point to dims)
+    -- Foreign keys
     {{ dbt_utils.generate_surrogate_key(['oi.order_id'])}}                 as order_sk,
     {{ dbt_utils.generate_surrogate_key(['o.customer_unique_id']) }}      as customer_sk,
     {{ dbt_utils.generate_surrogate_key(['oi.seller_id']) }}              as seller_sk,
@@ -81,9 +102,6 @@ select
    
     -- Order Date for partitioning
     o.order_purchase_date,
-
-    -- Add new integer column for Date as YearMonth to be used instead of date in partitioning
-    extract(year from o.order_purchase_date)*100 + extract(month from o.order_purchase_date) as order_purchase_ym,
     
     -- Order status and timestamps
     o.order_status,
@@ -93,9 +111,10 @@ select
     o.order_delivered_customer_timestamp,
     o.order_estimated_delivery_timestamp
 
-from {{ ref('stg_olist__order_items') }} as oi
-left join {{ ref('stg_olist__orders') }} as o          on oi.order_id = o.order_id
-left join payments p                                   on oi.order_id = p.order_id
-left join reviews r                                    on oi.order_id = r.order_id
-left join products pr                                  on oi.product_id = pr.product_id
-left join translation t                                on pr.product_category_name = t.product_category_name
+from order_items as oi
+left join recent_orders as o on oi.order_id = o.order_id
+left join payments p on oi.order_id = p.order_id
+left join reviews r on oi.order_id = r.order_id
+left join products pr on oi.product_id = pr.product_id
+left join translation t on pr.product_category_name = t.product_category_name
+

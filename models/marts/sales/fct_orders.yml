@@ -8,7 +8,7 @@ models:
       Order-grain fact table. One row per unique order.
 
       Aggregates item-level details from fct_order_items and enriches with customer geography.
-      Partitioned by integer year-month (order_purchase_ym = YYYYMM).
+      Partitioned order_purchase_date (month).
 
       Key features:
       - Handles duplicated freight_value using MAX()
@@ -19,9 +19,28 @@ models:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "gross_order_value >= 0"
+            description: "Gross order value cannot be negative"
       - dbt_utils.expression_is_true:
           arguments:
             expression: "order_item_count >= 1"
+            description: "Number of items in each order is at least 1"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "order_subtotal_amount >= 0"
+            description: "Order subtotal cannot be negative"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "order_shipping_cost_amount >= 0"
+            description: "Shipping cost cannot be negative"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "customer_paid_amount >= 0"
+            description: "Paid amount cannot be negative"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "gross_order_value >= customer_paid_amount"
+            description: "Gross value should be >= amount actually paid (handles partial payments/refunds)"
+            severity: warn
 
     columns:
       - name: order_sk
@@ -71,9 +90,6 @@ models:
       - name: order_purchase_date
         description: "Date as YYYYMMDD for the time order was placed"
 
-      - name: order_purchase_ym
-        description: "Partition key Integer (YYYYMM). Filter on this for fastest queries (e.g., WHERE order_purchase_ym = 201710)."
-      
       - name: order_purchase_timestamp
         description: "Timestamp when order was placed"
         tests: [not_null]

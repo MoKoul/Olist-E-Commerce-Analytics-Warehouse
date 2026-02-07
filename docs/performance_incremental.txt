@@ -1,0 +1,232 @@
+=== Olist dbt Incremental vs Full Refresh Benchmark ===
+Date:       2026-02-07 10:32:41
+Branch:     upgrades/incremental-models
+==================================================================
+
+1. Dependencies
+[0m15:32:42  Running with dbt=1.11.2
+[0m15:32:42  Installing dbt-labs/dbt_utils
+[0m15:32:42  Installed from version 1.3.0
+[0m15:32:42  Updated version available: 1.3.3
+[0m15:32:42  
+[0m15:32:42  Updates available for packages: ['dbt-labs/dbt_utils']                 
+Update your versions in packages.yml, then run dbt deps
+
+real	0m1.493s
+user	0m0.842s
+sys	0m0.199s
+
+2. Initial Load (Full Refresh - builds everything)
+[0m15:32:43  Running with dbt=1.11.2
+[0m15:32:46  Registered adapter: bigquery=1.11.0
+[0m15:32:47  Found 18 models, 57 data tests, 9 sources, 654 macros
+[0m15:32:47  
+[0m15:32:47  Concurrency: 4 threads (target='dev')
+[0m15:32:47  
+[0m15:32:48  1 of 5 START sql table model dwh_olist.dim_customer ............................ [RUN]
+[0m15:32:48  2 of 5 START sql table model dwh_olist.dim_product ............................. [RUN]
+[0m15:32:48  3 of 5 START sql table model dwh_olist.dim_seller .............................. [RUN]
+[0m15:32:48  4 of 5 START sql incremental model dwh_olist.fct_order_items ................... [RUN]
+[0m15:32:51  3 of 5 OK created sql table model dwh_olist.dim_seller ......................... [[32mCREATE TABLE (3.1k rows, 38.8 MiB processed)[0m in 3.03s]
+[0m15:32:51  2 of 5 OK created sql table model dwh_olist.dim_product ........................ [[32mCREATE TABLE (33.0k rows, 2.8 MiB processed)[0m in 3.20s]
+[0m15:32:52  1 of 5 OK created sql table model dwh_olist.dim_customer ....................... [[32mCREATE TABLE (96.1k rows, 44.2 MiB processed)[0m in 4.06s]
+[0m15:32:54  4 of 5 OK created sql incremental model dwh_olist.fct_order_items .............. [[32mCREATE TABLE (112.7k rows, 36.1 MiB processed)[0m in 5.52s]
+[0m15:32:54  5 of 5 START sql incremental model dwh_olist.fct_orders ........................ [RUN]
+[0m15:32:57  5 of 5 OK created sql incremental model dwh_olist.fct_orders ................... [[32mCREATE TABLE (98.7k rows, 23.6 MiB processed)[0m in 3.83s]
+[0m15:32:57  
+[0m15:32:57  Finished running 2 incremental models, 3 table models in 0 hours 0 minutes and 10.73 seconds (10.73s).
+[0m15:32:57  
+[0m15:32:57  [32mCompleted successfully[0m
+[0m15:32:57  
+[0m15:32:57  Done. PASS=5 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=5
+
+real	0m15.366s
+user	0m3.654s
+sys	0m1.347s
+
+3. Incremental Run (processes only recent/overlapping data)
+[0m15:32:59  Running with dbt=1.11.2
+[0m15:33:01  Registered adapter: bigquery=1.11.0
+[0m15:33:01  Found 18 models, 57 data tests, 9 sources, 654 macros
+[0m15:33:01  
+[0m15:33:01  Concurrency: 4 threads (target='dev')
+[0m15:33:01  
+[0m15:33:03  1 of 2 START sql incremental model dwh_olist.fct_order_items ................... [RUN]
+[0m15:33:07  1 of 2 OK created sql incremental model dwh_olist.fct_order_items .............. [[32mMERGE (1.0 rows, 28.6 MiB processed)[0m in 4.29s]
+[0m15:33:07  2 of 2 START sql incremental model dwh_olist.fct_orders ........................ [RUN]
+[0m15:33:10  2 of 2 OK created sql incremental model dwh_olist.fct_orders ................... [[32mMERGE (1.0 rows, 8.7 MiB processed)[0m in 3.50s]
+[0m15:33:10  
+[0m15:33:10  Finished running 2 incremental models in 0 hours 0 minutes and 8.99 seconds (8.99s).
+[0m15:33:11  
+[0m15:33:11  [32mCompleted successfully[0m
+[0m15:33:11  
+[0m15:33:11  Done. PASS=2 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=2
+
+real	0m13.056s
+user	0m3.451s
+sys	0m1.210s
+
+4. Reporting Views
+[0m15:33:12  Running with dbt=1.11.2
+[0m15:33:14  Registered adapter: bigquery=1.11.0
+[0m15:33:14  Found 18 models, 57 data tests, 9 sources, 654 macros
+[0m15:33:14  
+[0m15:33:14  Concurrency: 4 threads (target='dev')
+[0m15:33:14  
+[0m15:33:15  1 of 3 START sql view model dwh_olist_reporting.rpt_daily_sales ................ [RUN]
+[0m15:33:15  2 of 3 START sql view model dwh_olist_reporting.rpt_geography_insights ......... [RUN]
+[0m15:33:15  3 of 3 START sql view model dwh_olist_reporting.rpt_monthly_sales_by_category .. [RUN]
+[0m15:33:16  2 of 3 OK created sql view model dwh_olist_reporting.rpt_geography_insights .... [[32mCREATE VIEW (0 processed)[0m in 0.87s]
+[0m15:33:16  3 of 3 OK created sql view model dwh_olist_reporting.rpt_monthly_sales_by_category  [[32mCREATE VIEW (0 processed)[0m in 0.87s]
+[0m15:33:16  1 of 3 OK created sql view model dwh_olist_reporting.rpt_daily_sales ........... [[32mCREATE VIEW (0 processed)[0m in 1.00s]
+[0m15:33:16  
+[0m15:33:16  Finished running 3 view models in 0 hours 0 minutes and 1.99 seconds (1.99s).
+[0m15:33:17  
+[0m15:33:17  [32mCompleted successfully[0m
+[0m15:33:17  
+[0m15:33:17  Done. PASS=3 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=3
+
+real	0m5.984s
+user	0m3.363s
+sys	0m1.187s
+
+5. Tests
+[0m15:33:18  Running with dbt=1.11.2
+[0m15:33:20  Registered adapter: bigquery=1.11.0
+[0m15:33:21  Found 18 models, 57 data tests, 9 sources, 654 macros
+[0m15:33:21  
+[0m15:33:21  Concurrency: 4 threads (target='dev')
+[0m15:33:21  
+[0m15:33:21  1 of 57 START test accepted_values_fct_orders_counts_as_sale__False__True__False  [RUN]
+[0m15:33:21  2 of 57 START test accepted_values_fct_orders_is_delivered__False__True__False . [RUN]
+[0m15:33:21  3 of 57 START test accepted_values_fct_orders_is_late__False__True__False ...... [RUN]
+[0m15:33:21  4 of 57 START test accepted_values_fct_orders_order_status__created__approved__invoiced__processing__shipped__delivered__unavailable__canceled  [RUN]
+[0m15:33:22  1 of 57 PASS accepted_values_fct_orders_counts_as_sale__False__True__False ..... [[32mPASS[0m in 1.15s]
+[0m15:33:22  4 of 57 PASS accepted_values_fct_orders_order_status__created__approved__invoiced__processing__shipped__delivered__unavailable__canceled  [[32mPASS[0m in 1.15s]
+[0m15:33:22  3 of 57 PASS accepted_values_fct_orders_is_late__False__True__False ............ [[32mPASS[0m in 1.15s]
+[0m15:33:22  2 of 57 PASS accepted_values_fct_orders_is_delivered__False__True__False ....... [[32mPASS[0m in 1.15s]
+[0m15:33:22  5 of 57 START test dbt_utils_equal_rowcount_fct_order_items_ref_stg_olist__order_items_  [RUN]
+[0m15:33:22  6 of 57 START test dbt_utils_expression_is_true_fct_order_items_customer_paid_amount_0  [RUN]
+[0m15:33:22  7 of 57 START test dbt_utils_expression_is_true_fct_order_items_item_price_0 ... [RUN]
+[0m15:33:22  8 of 57 START test dbt_utils_expression_is_true_fct_order_items_order_shipping_cost_amount_0  [RUN]
+[0m15:33:23  8 of 57 PASS dbt_utils_expression_is_true_fct_order_items_order_shipping_cost_amount_0  [[32mPASS[0m in 1.04s]
+[0m15:33:23  6 of 57 PASS dbt_utils_expression_is_true_fct_order_items_customer_paid_amount_0  [[32mPASS[0m in 1.05s]
+[0m15:33:23  9 of 57 START test dbt_utils_expression_is_true_fct_orders_customer_paid_amount_0  [RUN]
+[0m15:33:23  10 of 57 START test dbt_utils_expression_is_true_fct_orders_gross_order_value_0  [RUN]
+[0m15:33:23  7 of 57 PASS dbt_utils_expression_is_true_fct_order_items_item_price_0 ......... [[32mPASS[0m in 1.07s]
+[0m15:33:23  11 of 57 START test dbt_utils_expression_is_true_fct_orders_gross_order_value_customer_paid_amount  [RUN]
+[0m15:33:24  5 of 57 PASS dbt_utils_equal_rowcount_fct_order_items_ref_stg_olist__order_items_  [[32mPASS[0m in 1.30s]
+[0m15:33:24  12 of 57 START test dbt_utils_expression_is_true_fct_orders_order_item_count_1 . [RUN]
+[0m15:33:24  10 of 57 PASS dbt_utils_expression_is_true_fct_orders_gross_order_value_0 ...... [[32mPASS[0m in 0.88s]
+[0m15:33:24  13 of 57 START test dbt_utils_expression_is_true_fct_orders_order_shipping_cost_amount_0  [RUN]
+[0m15:33:24  9 of 57 PASS dbt_utils_expression_is_true_fct_orders_customer_paid_amount_0 .... [[32mPASS[0m in 0.93s]
+[0m15:33:24  14 of 57 START test dbt_utils_expression_is_true_fct_orders_order_subtotal_amount_0  [RUN]
+[0m15:33:24  11 of 57 WARN 18403 dbt_utils_expression_is_true_fct_orders_gross_order_value_customer_paid_amount  [[33mWARN 18403[0m in 1.02s]
+[0m15:33:24  15 of 57 START test not_null_dim_customer_customer_city ........................ [RUN]
+[0m15:33:25  12 of 57 PASS dbt_utils_expression_is_true_fct_orders_order_item_count_1 ....... [[32mPASS[0m in 1.03s]
+[0m15:33:25  16 of 57 START test not_null_dim_customer_customer_sk .......................... [RUN]
+[0m15:33:25  13 of 57 PASS dbt_utils_expression_is_true_fct_orders_order_shipping_cost_amount_0  [[32mPASS[0m in 0.94s]
+[0m15:33:25  17 of 57 START test not_null_dim_customer_customer_state ....................... [RUN]
+[0m15:33:25  14 of 57 PASS dbt_utils_expression_is_true_fct_orders_order_subtotal_amount_0 .. [[32mPASS[0m in 0.90s]
+[0m15:33:25  18 of 57 START test not_null_dim_customer_customer_unique_id ................... [RUN]
+[0m15:33:25  15 of 57 PASS not_null_dim_customer_customer_city .............................. [[32mPASS[0m in 0.89s]
+[0m15:33:25  19 of 57 START test not_null_dim_customer_customer_zip_code_prefix ............. [RUN]
+[0m15:33:26  16 of 57 PASS not_null_dim_customer_customer_sk ................................ [[32mPASS[0m in 0.87s]
+[0m15:33:26  20 of 57 START test not_null_dim_date_date_key ................................. [RUN]
+[0m15:33:26  17 of 57 PASS not_null_dim_customer_customer_state ............................. [[32mPASS[0m in 0.89s]
+[0m15:33:26  21 of 57 START test not_null_dim_product_product_category_name_english ......... [RUN]
+[0m15:33:26  19 of 57 PASS not_null_dim_customer_customer_zip_code_prefix ................... [[32mPASS[0m in 0.85s]
+[0m15:33:26  22 of 57 START test not_null_dim_product_product_category_name_portuguese ...... [RUN]
+[0m15:33:26  18 of 57 PASS not_null_dim_customer_customer_unique_id ......................... [[32mPASS[0m in 1.02s]
+[0m15:33:26  23 of 57 START test not_null_dim_product_product_id ............................ [RUN]
+[0m15:33:26  20 of 57 PASS not_null_dim_date_date_key ....................................... [[32mPASS[0m in 0.81s]
+[0m15:33:26  24 of 57 START test not_null_dim_product_product_sk ............................ [RUN]
+[0m15:33:27  21 of 57 PASS not_null_dim_product_product_category_name_english ............... [[32mPASS[0m in 0.89s]
+[0m15:33:27  25 of 57 START test not_null_dim_seller_seller_city ............................ [RUN]
+[0m15:33:27  23 of 57 PASS not_null_dim_product_product_id .................................. [[32mPASS[0m in 0.78s]
+[0m15:33:27  26 of 57 START test not_null_dim_seller_seller_id .............................. [RUN]
+[0m15:33:27  22 of 57 PASS not_null_dim_product_product_category_name_portuguese ............ [[32mPASS[0m in 0.87s]
+[0m15:33:27  27 of 57 START test not_null_dim_seller_seller_sk .............................. [RUN]
+[0m15:33:27  24 of 57 PASS not_null_dim_product_product_sk .................................. [[32mPASS[0m in 0.94s]
+[0m15:33:27  28 of 57 START test not_null_dim_seller_seller_state ........................... [RUN]
+[0m15:33:28  27 of 57 PASS not_null_dim_seller_seller_sk .................................... [[32mPASS[0m in 0.82s]
+[0m15:33:28  25 of 57 PASS not_null_dim_seller_seller_city .................................. [[32mPASS[0m in 0.87s]
+[0m15:33:28  29 of 57 START test not_null_dim_seller_seller_zip_code_prefix ................. [RUN]
+[0m15:33:28  30 of 57 START test not_null_fct_order_items_customer_sk ....................... [RUN]
+[0m15:33:28  26 of 57 PASS not_null_dim_seller_seller_id .................................... [[32mPASS[0m in 0.87s]
+[0m15:33:28  31 of 57 START test not_null_fct_order_items_date_key .......................... [RUN]
+[0m15:33:28  28 of 57 PASS not_null_dim_seller_seller_state ................................. [[32mPASS[0m in 0.92s]
+[0m15:33:28  32 of 57 START test not_null_fct_order_items_order_item_sk ..................... [RUN]
+[0m15:33:29  29 of 57 PASS not_null_dim_seller_seller_zip_code_prefix ....................... [[32mPASS[0m in 0.89s]
+[0m15:33:29  33 of 57 START test not_null_fct_order_items_product_sk ........................ [RUN]
+[0m15:33:29  30 of 57 PASS not_null_fct_order_items_customer_sk ............................. [[32mPASS[0m in 0.89s]
+[0m15:33:29  31 of 57 PASS not_null_fct_order_items_date_key ................................ [[32mPASS[0m in 0.88s]
+[0m15:33:29  34 of 57 START test not_null_fct_order_items_seller_sk ......................... [RUN]
+[0m15:33:29  35 of 57 START test not_null_fct_orders_customer_paid_amount ................... [RUN]
+[0m15:33:29  32 of 57 PASS not_null_fct_order_items_order_item_sk ........................... [[32mPASS[0m in 1.10s]
+[0m15:33:29  36 of 57 START test not_null_fct_orders_customer_sk ............................ [RUN]
+[0m15:33:30  34 of 57 PASS not_null_fct_order_items_seller_sk ............................... [[32mPASS[0m in 0.89s]
+[0m15:33:30  37 of 57 START test not_null_fct_orders_date_key ............................... [RUN]
+[0m15:33:30  35 of 57 PASS not_null_fct_orders_customer_paid_amount ......................... [[32mPASS[0m in 0.90s]
+[0m15:33:30  38 of 57 START test not_null_fct_orders_gross_order_value ...................... [RUN]
+[0m15:33:30  33 of 57 PASS not_null_fct_order_items_product_sk .............................. [[32mPASS[0m in 0.94s]
+[0m15:33:30  39 of 57 START test not_null_fct_orders_order_item_count ....................... [RUN]
+[0m15:33:31  36 of 57 PASS not_null_fct_orders_customer_sk .................................. [[32mPASS[0m in 1.29s]
+[0m15:33:31  40 of 57 START test not_null_fct_orders_order_purchase_timestamp ............... [RUN]
+[0m15:33:31  39 of 57 PASS not_null_fct_orders_order_item_count ............................. [[32mPASS[0m in 0.92s]
+[0m15:33:31  41 of 57 START test not_null_fct_orders_order_sk ............................... [RUN]
+[0m15:33:31  37 of 57 PASS not_null_fct_orders_date_key ..................................... [[32mPASS[0m in 0.99s]
+[0m15:33:31  42 of 57 START test not_null_fct_orders_order_status ........................... [RUN]
+[0m15:33:31  38 of 57 PASS not_null_fct_orders_gross_order_value ............................ [[32mPASS[0m in 1.05s]
+[0m15:33:31  43 of 57 START test relationships_fct_order_items_customer_sk__customer_sk__ref_dim_customer_  [RUN]
+[0m15:33:32  41 of 57 PASS not_null_fct_orders_order_sk ..................................... [[32mPASS[0m in 0.98s]
+[0m15:33:32  44 of 57 START test relationships_fct_order_items_date_key__date_key__ref_dim_date_  [RUN]
+[0m15:33:32  43 of 57 PASS relationships_fct_order_items_customer_sk__customer_sk__ref_dim_customer_  [[32mPASS[0m in 0.92s]
+[0m15:33:32  45 of 57 START test relationships_fct_order_items_product_sk__product_sk__ref_dim_product_  [RUN]
+[0m15:33:32  40 of 57 PASS not_null_fct_orders_order_purchase_timestamp ..................... [[32mPASS[0m in 1.12s]
+[0m15:33:32  46 of 57 START test relationships_fct_order_items_seller_sk__seller_sk__ref_dim_seller_  [RUN]
+[0m15:33:32  42 of 57 PASS not_null_fct_orders_order_status ................................. [[32mPASS[0m in 1.44s]
+[0m15:33:32  47 of 57 START test relationships_fct_orders_customer_sk__customer_sk__ref_dim_customer_  [RUN]
+[0m15:33:33  44 of 57 PASS relationships_fct_order_items_date_key__date_key__ref_dim_date_ .. [[32mPASS[0m in 0.91s]
+[0m15:33:33  48 of 57 START test relationships_fct_orders_date_key__date_key__ref_dim_date_ . [RUN]
+[0m15:33:33  46 of 57 PASS relationships_fct_order_items_seller_sk__seller_sk__ref_dim_seller_  [[32mPASS[0m in 0.88s]
+[0m15:33:33  49 of 57 START test unique_dim_customer_customer_sk ............................ [RUN]
+[0m15:33:33  45 of 57 PASS relationships_fct_order_items_product_sk__product_sk__ref_dim_product_  [[32mPASS[0m in 1.11s]
+[0m15:33:33  50 of 57 START test unique_dim_customer_customer_unique_id ..................... [RUN]
+[0m15:33:33  47 of 57 PASS relationships_fct_orders_customer_sk__customer_sk__ref_dim_customer_  [[32mPASS[0m in 0.87s]
+[0m15:33:33  51 of 57 START test unique_dim_date_date_key ................................... [RUN]
+[0m15:33:33  48 of 57 PASS relationships_fct_orders_date_key__date_key__ref_dim_date_ ....... [[32mPASS[0m in 0.89s]
+[0m15:33:33  52 of 57 START test unique_dim_product_product_id .............................. [RUN]
+[0m15:33:34  49 of 57 PASS unique_dim_customer_customer_sk .................................. [[32mPASS[0m in 0.85s]
+[0m15:33:34  53 of 57 START test unique_dim_product_product_sk .............................. [RUN]
+[0m15:33:34  51 of 57 PASS unique_dim_date_date_key ......................................... [[32mPASS[0m in 0.72s]
+[0m15:33:34  54 of 57 START test unique_dim_seller_seller_id ................................ [RUN]
+[0m15:33:34  50 of 57 PASS unique_dim_customer_customer_unique_id ........................... [[32mPASS[0m in 0.95s]
+[0m15:33:34  55 of 57 START test unique_dim_seller_seller_sk ................................ [RUN]
+[0m15:33:34  52 of 57 PASS unique_dim_product_product_id .................................... [[32mPASS[0m in 0.91s]
+[0m15:33:34  56 of 57 START test unique_fct_order_items_order_item_sk ....................... [RUN]
+[0m15:33:35  53 of 57 PASS unique_dim_product_product_sk .................................... [[32mPASS[0m in 1.01s]
+[0m15:33:35  57 of 57 START test unique_fct_orders_order_sk ................................. [RUN]
+[0m15:33:35  54 of 57 PASS unique_dim_seller_seller_id ...................................... [[32mPASS[0m in 0.80s]
+[0m15:33:35  55 of 57 PASS unique_dim_seller_seller_sk ...................................... [[32mPASS[0m in 0.81s]
+[0m15:33:35  57 of 57 PASS unique_fct_orders_order_sk ....................................... [[32mPASS[0m in 0.89s]
+[0m15:33:35  56 of 57 PASS unique_fct_order_items_order_item_sk ............................. [[32mPASS[0m in 1.08s]
+[0m15:33:35  
+[0m15:33:35  Finished running 57 data tests in 0 hours 0 minutes and 14.92 seconds (14.92s).
+[0m15:33:36  
+[0m15:33:36  [33mCompleted with 1 warning:[0m
+[0m15:33:36  
+[0m15:33:36  [33mWarning in test dbt_utils_expression_is_true_fct_orders_gross_order_value_customer_paid_amount (models/marts/sales/fct_orders.yml)[0m
+[0m15:33:36  Got 18403 results, configured to warn if != 0
+[0m15:33:36  
+[0m15:33:36    compiled code at target/compiled/olist_warehouse_project/models/marts/sales/fct_orders.yml/dbt_utils_expression_is_true_f_71bddf56ac0c4c2bdf44d443b04b83d8.sql
+[0m15:33:36  
+[0m15:33:36  Done. PASS=56 WARN=1 ERROR=0 SKIP=0 NO-OP=0 TOTAL=57
+
+real	0m19.035s
+user	0m5.930s
+sys	0m1.450s
+
+=== Done ===
+Focus on MiB processed in the logs — that's the real cost saving.
+Time differences are small/noisy due to tiny dataset + merge overhead.

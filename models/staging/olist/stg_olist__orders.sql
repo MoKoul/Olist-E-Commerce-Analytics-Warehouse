@@ -1,5 +1,18 @@
 -- models/staging/olist/stg_olist__orders.sql
 
+{{
+    config(
+        materialized = 'table',
+        partition_by = {
+            "field": "order_purchase_date",
+            "data_type": "date",
+            "granularity": "day"
+        },
+        cluster_by = ["order_status"]
+    )
+}}
+
+
 
 select
     o.order_id,
