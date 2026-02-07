@@ -13,7 +13,22 @@ models:
     
     tests:
       - dbt_utils.equal_rowcount:
-          compare_model: ref('stg_olist__order_items')
+          arguments:
+            compare_model: ref('stg_olist__order_items')
+      
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "item_price >= 0"
+            description: "Item price cannot be negative"
+            severity: error
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "order_shipping_cost_amount >= 0"
+            description: "Duplicated shipping cost cannot be negative"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "customer_paid_amount >= 0"
+            description: "Duplicated paid amount cannot be negative"
     
     columns:
       - name: order_item_sk
@@ -80,9 +95,6 @@ models:
       - name: order_purchase_date
         description: "Date as YYYYMMDD for the time order was placed"
 
-      - name: order_purchase_ym
-        description: "Partition key Integer (YYYYMM). Filter on this for fastest queries (e.g., WHERE order_purchase_ym = 201710)."
-
       - name: order_purchase_timestamp
         description: "Timestamp when the order was placed"
 
@@ -96,5 +108,9 @@ models:
         description: "Timestamp when delivered to customer"
 
       - name: order_estimated_delivery_timestamp
-        description: "Original estimated delivery timestamp"
+        description: "Original estimated delivery timestamp"          
+
+
+
+
     

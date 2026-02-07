@@ -16,14 +16,16 @@
 
 {{
     config(
-        materialized = 'table',
+        materialized = 'incremental',
+        unique_key = 'order_sk',
         partition_by = {
-            "field": "order_purchase_ym",
-            "data_type": "int64",
-            "range": {"start": 201601, "end": 201901, "interval": 1}
-    },
+            "field": "order_purchase_date",
+            "data_type": "date",
+            "granularity": "month"
+        },
         cluster_by = ["customer_sk", "order_status", "customer_state"],
-        require_partition_filter = false 
+        require_partition_filter = false,
+        incremental_strategy = 'merge'
     )
 }}
 
@@ -42,9 +44,6 @@ select
     
     -- Order Date for partitioning
     oi.order_purchase_date,
-
-     -- Add new integer column for Date as YearMonth to be used instead of date in partitioning
-    oi.order_purchase_ym,
 
     -- Order timestamps and status
     oi.order_status,
@@ -75,4 +74,14 @@ select
 from {{ ref('fct_order_items') }} oi
 left join {{ ref('dim_customer') }} c
         on oi.customer_sk = c.customer_sk
+
+{% if is_incremental() %}
+where oi.order_purchase_timestamp >= (
+    select timestamp_sub(max(order_purchase_timestamp), interval 3 day)
+    from {{ ref('fct_order_items') }}
+)
+{% else %}
+where 1=1  -- placeholder for full-refresh (no filter)
+{% endif %}
+
 group by all   
