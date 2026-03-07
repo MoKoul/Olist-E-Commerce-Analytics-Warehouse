@@ -24,7 +24,7 @@ Raw Olist CSV data is transformed into a fully documented, rigorously tested, an
 - Core dimensions and facts in a dedicated `marts` layer
 - Downstream reporting views optimized for dashboards
 
-The warehouse handles real-world challenges such as duplicated freight values, inconsistent geolocation, special characters in review text, and late-arriving data, while delivering cost-efficient incremental refreshes.
+The warehouse handles real-world challenges such as distributed freight values, inconsistent geolocation, special characters in review text, and late-arriving data, while delivering cost-efficient incremental refreshes.
 
 
 ## Architecture
@@ -42,7 +42,7 @@ Raw review comments contain special characters that break BigQuery CSV imports. 
 
 - **Staging layer**: Consistent naming, light cleaning, source freshness monitoring
 - **Surrogate keys**: Deterministic hashes via `dbt_utils.generate_surrogate_key`
-- **Freight de-duplication**: Uses `MAX()` to correctly allocate order-level shipping cost
+- **Freight aggregation**: Uses SUM() to accurately total the shipping cost, as the source data distributes the total order freight across individual line items.
 - **Geography enrichment**: Joins geolocation data for city/state/lat/lng at customer level
 - **Incremental processing**: Fact tables use `MERGE` strategy with 3-day overlap window to safely handle late-arriving or updated data
 - **Cost optimization**: Facts and key staging tables are partitioned (daily on purchase date) and clustered on high-filter columns (`order_status`)

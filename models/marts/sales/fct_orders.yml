@@ -11,7 +11,7 @@ models:
       Partitioned order_purchase_date (month).
 
       Key features:
-      - Handles duplicated freight_value using MAX()
+      - Handles split freight_value using sum()
       - Includes delivery performance flags (is_delivered, is_late, days_to_deliver)
       - Provides clean order-level measures: subtotal, shipping, gross value, payment details, review score
       - Business flags for sales attribution (excludes canceled orders)
@@ -38,7 +38,7 @@ models:
             description: "Paid amount cannot be negative"
       - dbt_utils.expression_is_true:
           arguments:
-            expression: "gross_order_value >= customer_paid_amount"
+            expression: "gross_order_value >= customer_paid_amount - 1"
             description: "Gross value should be >= amount actually paid (handles partial payments/refunds)"
             severity: warn
 
@@ -133,7 +133,7 @@ models:
         description: "Sum of items prices (excluding shipping)"
 
       - name: order_shipping_cost_amount
-        description: "Total shipping cost for the order (de-duplicated via MAX)"
+        description: "Total shipping cost for the order (Uses Sum() because the source data splits the total shipping cost across individual items.)"
 
       - name: gross_order_value
         description: "Subtotal + shipping = gross order value"

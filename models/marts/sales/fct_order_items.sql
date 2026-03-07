@@ -4,7 +4,7 @@
 -- Fact table: Sales at order-item grain (one row per line item in an order)
 -- 
 -- Includes:
---   • item unit price & freight per order
+--   • item unit price & freight per item
 --   • Aggregated payment value and installments (multiple payments per order possible)
 --   • Average review score (multiple reviews per order possible)
 --   • Key order timestamps and status
@@ -91,7 +91,7 @@ select
 
     -- Measures
     oi.price                                                     as item_price,
-    oi.freight_value                                             as order_shipping_cost_amount,
+    oi.freight_value                                             as item_shipping_cost_amount,
     coalesce(p.total_payment_value, 0)                           as customer_paid_amount,
     coalesce(p.max_installments, 0)                              as payment_installments_count,
     coalesce(r.avg_review_score, 0)                              as order_review_score_avg,
