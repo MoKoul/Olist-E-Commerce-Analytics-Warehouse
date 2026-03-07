@@ -15,7 +15,7 @@
 
 {{
     config(
-        materialized = 'incremental',
+        materialized = 'table',
         unique_key = 'order_item_sk',
         partition_by = {
             "field": "order_purchase_date",
@@ -24,7 +24,8 @@
         },
         cluster_by = ["order_status", "product_category_name_english"],
         require_partition_filter = false,
-        incremental_strategy = 'merge'
+        incremental_strategy = 'merge',
+        full_refresh = true
     )
 }}
 

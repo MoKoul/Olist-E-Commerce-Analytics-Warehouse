@@ -16,7 +16,7 @@
 
 {{
     config(
-        materialized = 'incremental',
+        materialized = 'table',
         unique_key = 'order_sk',
         partition_by = {
             "field": "order_purchase_date",
@@ -25,7 +25,8 @@
         },
         cluster_by = ["customer_sk", "order_status", "customer_state"],
         require_partition_filter = false,
-        incremental_strategy = 'merge'
+        incremental_strategy = 'merge',
+        full_refresh = true
     )
 }}
 
