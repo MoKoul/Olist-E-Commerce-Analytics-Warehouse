@@ -23,8 +23,8 @@ models:
             severity: error
       - dbt_utils.expression_is_true:
           arguments:
-            expression: "order_shipping_cost_amount >= 0"
-            description: "Duplicated shipping cost cannot be negative"
+            expression: "item_shipping_cost_amount >= 0"
+            description: "item shipping cost cannot be negative"
       - dbt_utils.expression_is_true:
           arguments:
             expression: "customer_paid_amount >= 0"
@@ -77,8 +77,8 @@ models:
       - name: item_price
         description: "Price of the item (excluding freight)"
 
-      - name: order_shipping_cost_amount
-        description: "Total order-level shipping cost, duplicated across all items in the stg_olist__order_items table"
+      - name: item_shipping_cost_amount
+        description: " Shipping cost split for each item in the order (because the source data splits the total shipping cost across individual items.)"
 
       - name: customer_paid_amount
         description: "Total amount paid by customer for the entire order (aggregated from payments)"

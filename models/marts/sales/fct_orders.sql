@@ -8,7 +8,7 @@
 -- Built by aggregating from fct_order_items (item-grain fact) and enriching with dim_customer.
 --
 -- Key business logic:
--- • Freight/shipping cost: Uses MAX() to de-duplicate (source duplicates order shipping across all items)
+-- • Freight/shipping cost: Uses Sum() because the source data splits the total shipping cost across individual items.
 -- • Payment and review metrics: Carried forward from pre-aggregated values in fct_order_items
 -- • Delivery performance: Includes is_delivered, is_late flags, and days_to_deliver
 -- • Gross order value: item subtotal + shipping
@@ -16,7 +16,7 @@
 
 {{
     config(
-        materialized = 'incremental',
+        materialized = 'table',
         unique_key = 'order_sk',
         partition_by = {
             "field": "order_purchase_date",
@@ -25,7 +25,8 @@
         },
         cluster_by = ["customer_sk", "order_status", "customer_state"],
         require_partition_filter = false,
-        incremental_strategy = 'merge'
+        incremental_strategy = 'merge',
+        full_refresh = true
     )
 }}
 
@@ -61,15 +62,15 @@ select
     -- Measures
     count(*)                                                                 as order_item_count,
     sum(oi.item_price)                                                       as order_subtotal_amount,
-    max(oi.order_shipping_cost_amount)                                       as order_shipping_cost_amount,
-    sum(oi.item_price) + max(oi.order_shipping_cost_amount)                  as gross_order_value,
+    sum(oi.item_shipping_cost_amount)                                       as order_shipping_cost_amount,
+    sum(oi.item_price) + sum(oi.item_shipping_cost_amount)                  as gross_order_value,
     max(oi.customer_paid_amount)                                             as customer_paid_amount,  
     max(oi.payment_installments_count)                                       as payment_installments_count,
     max(oi.order_review_score_avg)                                           as order_review_score_avg,
 
     -- Business flags
-    countif(oi.order_status = 'canceled') > 0                                as was_canceled,
-    countif(oi.order_status in ('delivered', 'shipped', 'invoiced')) > 0     as counts_as_sale
+    oi.order_status = 'canceled'                                as was_canceled,
+    oi.order_status in ('delivered', 'shipped', 'invoiced')    as counts_as_sale
 
 from {{ ref('fct_order_items') }} oi
 left join {{ ref('dim_customer') }} c
